@@ -1,12 +1,59 @@
+#pragma once
+#include "pch.h"
+#include <iostream>
 #include <map>
 #include <string>
+#include <exception>
 #include "..\StaticLib1\Student.h"
 namespace Prog7b {
 	class ConstTableIt;
-	std::ostream & operator <<(std::ostream &, const std::pair<const int, Students::Student *> &);
+	template <typename IND, typename INF>
+	struct Pair {
+		IND first;
+		INF second;
+		Pair() :first(IND()), second(0) { }
+		Pair(const IND &code) :first(code), second(0) { }
+		Pair(const IND& ind, const INF& inf) : first(ind), second(inf) { }
+	};
+
+	template <typename IND, typename INF>
+	Pair <IND, INF> make_pair(const IND& ind, const INF& inf)
+	{
+		return Pair<IND, INF>(ind, inf);
+	}
+
+	template <typename IND, typename INF>
+	class Map {
+	private:
+		Pair <IND, INF>* arr;
+		int size;
+	public:
+		Pair< int, Students::Student*>* find(const int key) const;
+		Pair< int, Students::Student*>* begin() const;
+		Pair< int, Students::Student*>* end() const;
+		Pair< int, Students::Student*>* insert(Pair<IND, INF> key_value);
+		Pair< int, Students::Student*>* clear();
+		Pair< int, Students::Student*>* erase(const Pair< int, Students::Student*>*);
+	};
+
+	class ConstTableIt {
+	private:
+		const Pair< int, Students::Student*>* cur;
+	public:
+		ConstTableIt() {}
+		ConstTableIt(const Pair< int, Students::Student*>* it) :cur(it) {}
+		int operator !=(const ConstTableIt &) const;
+		int operator ==(const ConstTableIt &) const;
+		const Pair< int, Students::Student *> & operator *();
+		const Pair< int, Students::Student *> * operator ->();
+		ConstTableIt & operator ++();
+		ConstTableIt operator ++(int);
+	};
+	std::ostream & operator <<(std::ostream &, const Pair< int, Students::Student *> &);
+
 	class Table {
 	private:
-		std::map<const int, Students::Student *> arr;
+		Map< int, Students::Student *> arr;
 	public:
 		Table() {}
 		Table(const Table &);
@@ -18,21 +65,11 @@ namespace Prog7b {
 		bool insert(const int &, const Students::Student *);
 		bool replace(const int &, const Students::Student *);
 		bool remove(const int&);
-		Const_Iterator begin() const;
+		Const_Iterator begin() const
+		{
+			return ConstTableIt(arr.begin());
+		}
 		Const_Iterator end() const;
 	};
-	class ConstTableIt {
-	private:
-		std::map<const int, Students::Student *>::const_iterator cur;
-	public:
-		ConstTableIt() {}
-		ConstTableIt(std::map<const int, Students::Student *>::iterator it) :cur(it) {}
-		ConstTableIt(std::map<const int, Students::Student *>::const_iterator it) :cur(it) {}
-		int operator !=(const ConstTableIt &) const;
-		int operator ==(const ConstTableIt &) const;
-		const std::pair<const int, Students::Student *> & operator *();
-		const std::pair<const int, Students::Student *> * operator ->();
-		ConstTableIt & operator ++();
-		ConstTableIt operator ++(int);
-	};
+	
 };
