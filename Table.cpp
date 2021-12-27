@@ -1,45 +1,160 @@
-#include <iostream>
+﻿#include <iostream>
 #include "pch.h"
 #include "Table.h"
 namespace Prog7b {
 
-	std::ostream & operator <<(std::ostream &os,const std::pair<const int, Students::Student *> &p) {
+	Pair< int, Students::Student*>* Map< int, Students::Student*>::find(const int key) const
+	{
+		for (int i = 0; i < size; ++i)
+		{
+			if (arr[i].first == key)
+			{
+				return &arr[i];
+			}
+		}
+		return arr + size;
+	}
+
+	template<>
+	Pair<int, Students::Student*>* Map< int, Students::Student*>::begin() const
+	{
+		return &arr[0];
+	}
+	Pair< int, Students::Student*>* Map< int, Students::Student*>::end() const
+	{
+		
+		return &arr[size];
+	}
+
+	Pair< int, Students::Student*>* Map<int, Students::Student*>::insert(Pair<int, Students::Student*> key_value)
+	{
+		Pair<int, Students::Student*>* new_arr = new Pair<int, Students::Student*>[size + 1];
+		for (int i = 0; i < size; ++i)
+		{
+			new_arr[i].first = arr[i].first;
+
+			int whoAmI = arr[i].second->iAm();
+
+			switch (whoAmI)
+			{
+			case 1:
+				new_arr[i].second = new Students::Junior(*(static_cast<Students::Junior*>(arr[i].second)));
+				break;
+
+			case 2:
+				new_arr[i].second = new Students::Senior(*(static_cast<Students::Senior*>(arr[i].second)));
+				break;
+			case 3:
+				new_arr[i].second = new Students::Graduete(*(static_cast<Students::Graduete*>(arr[i].second)));
+				break;
+
+			default:
+				break;
+			}
+
+		}
+
+		new_arr[size].first = key_value.first;
+		int whoAmI = key_value.second->iAm();
+		switch (whoAmI)
+		{
+		case 1:
+			new_arr[size].second = new Students::Junior(*(static_cast<Students::Junior*>(key_value.second)));
+			break;
+
+		case 2:
+			new_arr[size].second = new Students::Senior(*(static_cast<Students::Senior*>(key_value.second)));
+			break;
+		case 3:
+			new_arr[size].second = new Students::Graduete(*(static_cast<Students::Graduete*>(key_value.second)));
+			break;
+
+		default:
+			break;
+		}
+		
+		for (int i = 0; i < size; ++i)
+		{
+			delete arr[i].second;
+		}
+		delete arr;
+
+		arr = new_arr;
+
+		++size;
+		return  &arr[size - 1];
+	}
+
+	Pair< int, Students::Student*>* Map<int, Students::Student*>::clear()
+	{
+		delete arr;
+		size = 0;
+		arr = nullptr;
+		return &arr[0];
+	}
+
+	Pair< int, Students::Student*>* Map< int, Students::Student*>::erase(const Pair< int, Students::Student*>* p)
+	{
+		int l = 0;
+		for (int i = 0; i < size; ++i)
+		{
+			if (arr[i].first == p->first)
+			{
+				++l;
+			}
+			if (l > 0) {
+				arr[i].first = arr[i+1].first;
+				arr[i].second = arr[i + 1].second;
+			}
+		}
+		--size;
+		return &arr[0];
+	}
+
+	
+
+	std::ostream & operator <<(std::ostream &os, const Pair< int, Students::Student *> &p) {
 		return os << '"' << p.first << '"' << " - " << (*p.second);
 	}
 	Table::Table(const Table &a)
 	{
-		std::map<const int, Students::Student *>::const_iterator p;
+		const Pair< int, Students::Student*>* p;
 		for (p = a.arr.begin(); p != a.arr.end(); ++p)
-			arr.insert(std::make_pair(p->first, p->second->clone()));
+			arr.insert(make_pair(p->first, p->second->clone()));
 	}
 	Table::~Table()
 	{
-		std::map<const int, Students::Student *>::iterator p;
+
+		 Pair< int, Students::Student*>* p;
 		for (p = arr.begin(); p != arr.end(); ++p) {
-			delete p->second;
-			p->second = nullptr;
+			if (p != nullptr)
+			{
+				delete p->second;
+				p->second = nullptr;
+			}
 		}
 	}
 	Table& Table::operator = (const Table &a)
 	{
-		std::map<const int, Students::Student *>::iterator p;
+
+		 Pair< int, Students::Student*>* p;
 		if (this != &a) {
 			for (p = arr.begin(); p != arr.end(); ++p)
 				delete p->second;
 			arr.clear();
-			std::map<const int, Students::Student *>::const_iterator pp;
+			const Pair< int, Students::Student*>*  pp;
 			for (pp = a.arr.begin(); pp != a.arr.end(); ++pp)
-				arr.insert(std::make_pair(pp->first, pp->second->clone()));
+				arr.insert(make_pair(pp->first, pp->second->clone()));
 		}
 		return *this;
 	}
 	bool Table::insert(const int &s, const Students::Student *f)
 	{
 		bool res = false;
-		std::map<const int, Students::Student *>::iterator p = arr.find(s);
+		const Pair< int, Students::Student*>* p = arr.find(s);
 		if (p == arr.end()) {
-			std::pair<std::map<const int, Students::Student *>::iterator, bool> pp =arr.insert(std::make_pair(s, f->clone()));
-			if (!pp.second)
+			auto pp = arr.insert(make_pair(s, f->clone()));
+			if (!pp->second)
 				throw std::exception("can't insert new item into map");
 			res = true;
 		}
@@ -48,7 +163,8 @@ namespace Prog7b {
 	bool Table::remove(const int &s)
 	{
 		bool res = false;
-		std::map<const int , Students::Student *>::iterator p = arr.find(s);
+
+		 Pair< int, Students::Student*>* p = arr.find(s);
 		if (p != arr.end()) { 
 			delete p->second;
 			p->second = nullptr;
@@ -60,7 +176,8 @@ namespace Prog7b {
 	bool Table::replace(const int &s, const Students::Student *f)
 	{
 		bool res = false;
-		std::map<const int, Students::Student *>::iterator p = arr.find(s);
+
+		 Pair< int, Students::Student*>* p = arr.find(s);
 
 			if (p != arr.end()) { 
 				delete p->second;
@@ -71,12 +188,8 @@ namespace Prog7b {
 	}
 	Table::Const_Iterator Table::find(const int &s) const
 	{
-		std::map<const int, Students::Student *>::const_iterator p = arr.find(s);
+		const Pair< int, Students::Student*>* p = arr.find(s);
 		return ConstTableIt(p);
-	}
-	Table::Const_Iterator Table::begin() const
-	{
-		return ConstTableIt(arr.begin());
 	}
 	Table::Const_Iterator Table::end() const
 	{
@@ -90,11 +203,11 @@ namespace Prog7b {
 	{
 		return cur == it.cur;
 	}
-	const std::pair<const int, Students::Student *> & ConstTableIt::operator *()
+	const Pair< int, Students::Student *> & ConstTableIt::operator *()
 	{
 		return *cur;
 	}
-	const std::pair<const int, Students::Student *> * ConstTableIt::operator ->()
+	const Pair< int, Students::Student *> * ConstTableIt::operator ->()
 	{
 		return &*cur;
 	}

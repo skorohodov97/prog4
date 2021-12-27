@@ -1,4 +1,4 @@
-#include "..\Table\Table.h"
+﻿#include "..\Table\Table.h"
 #include "..\StaticLib1\Student.h"
 #include <iostream>
 #include <string>
@@ -174,14 +174,14 @@ int ShowAll(Table &a)
 {
 	Table::Const_Iterator it;
 	for (it = a.begin(); it != a.end(); ++it)
-		std::cout << (*it) << std::endl;
+		std::cout << *it;
 	return 0;
 }
 int Iter(Table &a)
 {
 	std::cout << "Output of all ratings in the container" << std::endl;
 	Table::Const_Iterator it;
-	std::pair<int, Student*> p;
+	Pair<int, Student*> p;
 	const Student *pSh = nullptr;
 	int *ptr = new int[6],n;
 	for (it = a.begin(); it != a.end(); ++it) {
